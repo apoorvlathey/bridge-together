@@ -3,4 +3,8 @@ src = 'src'
 out = 'out'
 libs = ['lib']
 
+[rpc_endpoints]
+goerli = "${RPC_GOERLI}"
+mumbai = "${RPC_MUMBAI}"
+
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
