@@ -1,15 +1,19 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.15;
+
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
+import {ECDSA} from "@openzeppelin/utils/cryptography/ECDSA.sol";
+
 import {IConnext} from "./connext/IConnext.sol";
 import {IXReceiver} from "./connext/IXReceiver.sol";
 
 contract BridgeTogether is IXReceiver {
     using SafeERC20 for IERC20;
+    using ECDSA for bytes32;
 
     IERC20 public token;
-    uint256 public constant keeperFeesBPS = 50; // 0.5%
+    uint256 public keeperFeesBPS = 50; // 0.5%
 
     // The connext contract on the origin domain
     IConnext public immutable connext;
@@ -17,30 +21,74 @@ contract BridgeTogether is IXReceiver {
 
     address public owner;
 
+    bytes32 public immutable DOMAIN_SEPARATOR;
+
+    bytes32 public constant _HASHED_NAME = keccak256("BridgeTogether");
+    bytes32 public constant _TYPE_HASH =
+        keccak256(
+            "EIP712Domain(string name,uint256 chainId,address verifyingContract)"
+        );
+
+    struct BridgeDetails {
+        uint256 amount;
+    }
+
+    struct Bridge {
+        BridgeDetails details;
+        address user;
+    }
+
+    bytes32 public constant _BRIDGE_DETAILS_TYPEHASH =
+        keccak256("BridgeDetails(uint256 amount)");
+    bytes32 public constant _BRIDGE_TYPEHASH =
+        keccak256(
+            "Bridge(BridgeDetails details,address user)BridgeDetails(uint256 amount)"
+        );
+
+    struct SignData {
+        Bridge bridge;
+        bytes signature;
+    }
+
+    error NotOwner();
+    error InvalidSignature();
+
     constructor(IERC20 token_, IConnext connext_) {
         token = token_;
         connext = connext_;
 
         owner = msg.sender;
+
+        DOMAIN_SEPARATOR = keccak256(
+            abi.encode(_TYPE_HASH, _HASHED_NAME, block.chainid, address(this))
+        );
+    }
+
+    modifier onlyOwner() {
+        if (msg.sender != owner) revert NotOwner();
+        _;
     }
 
     function setTargetBridgeTogether(BridgeTogether bridgeTogetherTarget_)
         external
+        onlyOwner
     {
-        require(msg.sender == owner, "Not owner");
-
         bridgeTogetherTarget = bridgeTogetherTarget_;
     }
 
-    function bridge(bytes32[] calldata signatures, uint32 destination)
+    function setKeeperFeesBPS(uint256 keeperFeesBPS_) external onlyOwner {
+        keeperFeesBPS = keeperFeesBPS_;
+    }
+
+    function bridge(SignData[] calldata signDatas, uint32 destination)
         external
     {
         uint256 totalAllocation;
 
-        for (uint256 i; i < signatures.length; ++i) {
+        for (uint256 i; i < signDatas.length; ++i) {
             // TODO: prevent signature replay attack
             // TODO: signature must contain tokenAddress, chainId (if required)
-            (address user, uint256 amount) = _decodeSignature(signatures[i]);
+            (address user, uint256 amount) = _decodeSignature(signDatas[i]);
             token.safeTransferFrom(user, address(this), amount);
 
             totalAllocation += amount;
@@ -49,25 +97,25 @@ contract BridgeTogether is IXReceiver {
         token.safeTransfer(msg.sender, keeperFees);
 
         uint256 amountToBridge = totalAllocation - keeperFees;
-        _bridge(amountToBridge, signatures, totalAllocation, destination);
+        _bridge(amountToBridge, signDatas, totalAllocation, destination);
     }
 
     function xReceive(
-        bytes32 _transferId,
+        bytes32, /** _transferId */
         uint256 _amount,
-        address _asset,
-        address _originSender,
-        uint32 _origin,
+        address, /** _asset */
+        address, /** _originSender */
+        uint32, /** _origin */
         bytes memory _callData
     ) external returns (bytes memory) {
-        (uint256 totalAllocation, bytes32[] memory signatures) = abi.decode(
+        (uint256 totalAllocation, SignData[] memory signDatas) = abi.decode(
             _callData,
-            (uint256, bytes32[])
+            (uint256, SignData[])
         );
 
-        for (uint256 i; i < signatures.length; ++i) {
+        for (uint256 i; i < signDatas.length; ++i) {
             (address user, uint256 userAllocation) = _decodeSignature(
-                signatures[i]
+                signDatas[i]
             );
 
             token.safeTransfer(
@@ -77,17 +125,44 @@ contract BridgeTogether is IXReceiver {
         }
     }
 
-    function _decodeSignature(bytes32 signature)
+    /// @notice Creates an EIP-712 typed data hash
+    function hashTypedData(bytes32 dataHash) public view returns (bytes32) {
+        return
+            keccak256(abi.encodePacked("\x19\x01", DOMAIN_SEPARATOR, dataHash));
+    }
+
+    function hash(Bridge memory bridge_) public pure returns (bytes32) {
+        bytes32 detailsHash = _hashBridgeDetails(bridge_.details);
+        return
+            keccak256(abi.encode(_BRIDGE_TYPEHASH, detailsHash, bridge_.user));
+    }
+
+    function _hashBridgeDetails(BridgeDetails memory details)
         internal
+        pure
+        returns (bytes32)
+    {
+        return keccak256(abi.encode(_BRIDGE_DETAILS_TYPEHASH, details));
+    }
+
+    function _decodeSignature(SignData memory signData)
+        internal
+        view
         returns (address user, uint256 amount)
     {
-        user = address(0);
-        amount = 1 ether;
+        if (
+            hashTypedData(hash(signData.bridge))
+                .toEthSignedMessageHash()
+                .recover(signData.signature) != signData.bridge.user
+        ) revert InvalidSignature();
+
+        user = signData.bridge.user;
+        amount = signData.bridge.details.amount;
     }
 
     function _bridge(
         uint256 amountToBridge,
-        bytes32[] memory signatures,
+        SignData[] memory signDatas,
         uint256 totalAllocation,
         uint32 destination
     ) internal {
@@ -99,7 +174,7 @@ contract BridgeTogether is IXReceiver {
             _delegate: msg.sender, // TODO: this gives keeper extra undesirable powers
             _amount: amountToBridge,
             _slippage: 30,
-            _callData: abi.encode(totalAllocation, signatures)
+            _callData: abi.encode(totalAllocation, signDatas)
         });
     }
 }
