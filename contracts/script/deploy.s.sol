@@ -13,13 +13,14 @@ contract Deploy is Script {
     address goerli_connext = 0xFCa08024A6D4bCc87275b1E4A1E22B71fAD7f649;
     address goerli_test = 0x7ea6eA49B0b0Ae9c5db7907d139D9Cd3439862a1;
     BridgeTogether goerliBridge =
-        BridgeTogether(0x32f8348ad01A85dbd34FCB71Beb0f7C6DE3B3466);
+        BridgeTogether(0xf0a3d51006ab104cA0807f5C0c1d75CE20eE12c8);
     uint256 goerliForkId;
 
     // =========== MUMBAI ===============
     address mumbai_connext = 0x2334937846Ab2A3FCE747b32587e1A1A2f6EEC5a;
     address mumbai_test = 0xeDb95D8037f769B72AAab41deeC92903A98C9E16;
-    BridgeTogether mumbaiBridge; // 0x6Fe837da6463ec4663484eeBf14977F875d8FFa2
+    BridgeTogether mumbaiBridge =
+        BridgeTogether(0x224D07d7C545034d697074DAb089d997b7B8b7ac);
     uint256 mumbaiForkId;
 
     function run() external {

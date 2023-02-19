@@ -81,6 +81,7 @@ contract BridgeTogether is IXReceiver {
 
     function bridge(SignData[] calldata signDatas, uint32 destination)
         external
+        payable
     {
         uint256 totalAllocation;
 
@@ -92,6 +93,8 @@ contract BridgeTogether is IXReceiver {
 
             totalAllocation += amount;
         }
+
+        // TODO: keeperFees should get distributed on the destination chain
         uint256 keeperFees = (totalAllocation * keeperFeesBPS) / 10_000;
         token.safeTransfer(msg.sender, keeperFees);
 
@@ -113,9 +116,8 @@ contract BridgeTogether is IXReceiver {
         );
 
         for (uint256 i; i < signDatas.length; ++i) {
-            (address user, uint256 userAllocation) = _decodeSignature(
-                signDatas[i]
-            );
+            address user = signDatas[i].bridge.user;
+            uint256 userAllocation = signDatas[i].bridge.details.amount;
 
             token.safeTransfer(
                 user,
@@ -165,7 +167,7 @@ contract BridgeTogether is IXReceiver {
         uint32 destination
     ) internal {
         token.safeApprove(address(connext), amountToBridge);
-        connext.xcall{value: 0}({
+        connext.xcall{value: msg.value}({
             _destination: destination,
             _to: address(bridgeTogetherTarget),
             _asset: address(token),

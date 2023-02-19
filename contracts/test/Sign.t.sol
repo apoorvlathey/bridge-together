@@ -41,6 +41,32 @@ contract SignTests is Test {
         signData.signature.verify(hashedTypedData, signData.bridge.user);
     }
 
+    function testXReceive() external {
+        uint256 _amount = 4975000000000000000;
+        bytes
+            memory _callData = hex"0000000000000000000000000000000000000000000000004563918244f400000000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000004563918244f40000000000000000000000000000b06a64615842cba9b3bdb7e6f726f3a5bd20dac2000000000000000000000000000000000000000000000000000000000000006000000000000000000000000000000000000000000000000000000000000000419693573466449f360f9f2e2a0c56f829b8d803fac28b55de33b501d7228fadf7476d01bebb8582f74e635ab892e468a1e10e7354baa21265d7d8c869446bea861b00000000000000000000000000000000000000000000000000000000000000";
+
+        (
+            uint256 totalAllocation,
+            BridgeTogether.SignData[] memory signDatas
+        ) = abi.decode(_callData, (uint256, BridgeTogether.SignData[]));
+
+        console.log("array length", signDatas.length);
+
+        for (uint256 i; i < signDatas.length; ++i) {
+            address user = signDatas[i].bridge.user;
+            uint256 userAllocation = signDatas[i].bridge.details.amount;
+
+            uint256 amountToTransfer = (_amount * userAllocation) /
+                totalAllocation;
+
+            console.log("_amount", _amount);
+            console.log("user", user);
+            console.log("userAllocation", userAllocation);
+            console.log("amountToTransfer", amountToTransfer);
+        }
+    }
+
     function hashTypedData(bytes32 dataHash) public view returns (bytes32) {
         bytes memory encoded = abi.encodePacked(
             "\x19\x01",
