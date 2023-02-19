@@ -1,8 +1,28 @@
 import { useState } from "react";
 import { Box, Progress, Text } from "@chakra-ui/react";
+import { StoredSigData } from "@/types";
+import { BigNumber } from "ethers";
+import { formatEther, parseEther } from "ethers/lib/utils.js";
 
-export default function ProgressBar({ tokenName }: { tokenName: string }) {
-  const [tokenPooled, setTokenPooled] = useState(400);
+export default function ProgressBar({
+  tokenName,
+  storedSigs,
+}: {
+  tokenName: string;
+  storedSigs: StoredSigData[] | undefined;
+}) {
+  const tokenPooled =
+    storedSigs && storedSigs.length > 0
+      ? storedSigs.reduce(
+          (sum, sigData) =>
+            parseFloat(
+              formatEther(
+                parseEther(sum.toString()).add(BigNumber.from(sigData.amount))
+              )
+            ),
+          0
+        )
+      : 0;
 
   const targetPoolAmount = 1000;
 

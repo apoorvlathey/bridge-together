@@ -1,6 +1,6 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Center, VStack, Heading, Container } from "@chakra-ui/react";
 import Layout from "@/components/Layout";
 import TokenInput from "@/components/TokenInput";
@@ -11,12 +11,11 @@ import { StoredSigData } from "@/types";
 const storageKey = "bridge-together-sigdata";
 
 const Home: NextPage = () => {
-  const [tokenAmount, setTokenAmount] = useState<number>();
-
   const appendNewSig = (sigData: StoredSigData) => {
     const currentSigs = getStoredSigs();
     currentSigs.push(sigData);
     storeSig(currentSigs);
+    setStoredSigs(currentSigs);
   };
 
   const getStoredSigs = (): StoredSigData[] => {
@@ -27,6 +26,13 @@ const Home: NextPage = () => {
   const storeSig = (newSigData: StoredSigData[]) => {
     localStorage.setItem(storageKey, JSON.stringify(newSigData));
   };
+
+  const [tokenAmount, setTokenAmount] = useState<number>();
+  const [storedSigs, setStoredSigs] = useState<StoredSigData[]>();
+
+  useEffect(() => {
+    setStoredSigs(getStoredSigs());
+  }, []);
 
   return (
     <Layout>
@@ -44,7 +50,7 @@ const Home: NextPage = () => {
           >
             Bridge Together
           </Heading>
-          <ProgressBar tokenName="DAI" />
+          <ProgressBar tokenName="DAI" storedSigs={storedSigs} />
           <Container maxW="20rem">
             <TokenInput
               tokenName="DAI"
