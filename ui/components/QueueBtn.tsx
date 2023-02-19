@@ -2,11 +2,11 @@ import { Box, Button, Center } from "@chakra-ui/react";
 import { useAccount, useSignTypedData, useChainId } from "wagmi";
 import { utils } from "ethers";
 import { chainIdToConfig } from "@/config";
-import { StoredSigData } from "@/types";
+import { ChainSigData } from "@/types";
 
 interface Props {
   tokenAmount: number | undefined;
-  appendNewSig: (sigData: StoredSigData) => void;
+  appendNewSig: (sigData: ChainSigData) => void;
 }
 
 export default function QueueBtn({ tokenAmount, appendNewSig }: Props) {

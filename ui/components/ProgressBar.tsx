@@ -1,5 +1,5 @@
 import { Box, Center, Flex, HStack, Progress, Text } from "@chakra-ui/react";
-import { StoredSigData } from "@/types";
+import { ChainSigData } from "@/types";
 import { BigNumber } from "ethers";
 import { formatEther, parseEther } from "ethers/lib/utils.js";
 import BridgeBtn from "./BridgeBtn";
@@ -10,7 +10,7 @@ export default function ProgressBar({
   clearStoredSigs,
 }: {
   tokenName: string;
-  storedSigs: StoredSigData[] | undefined;
+  storedSigs: ChainSigData[] | undefined;
   clearStoredSigs: () => void;
 }) {
   const tokenPooled =

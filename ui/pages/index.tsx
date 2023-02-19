@@ -15,42 +15,56 @@ import {
   Tbody,
   Box,
 } from "@chakra-ui/react";
+import { useChainId } from "wagmi";
 import Layout from "@/components/Layout";
 import TokenInput from "@/components/TokenInput";
 import ProgressBar from "@/components/ProgressBar";
 import QueueBtn from "@/components/QueueBtn";
-import { StoredSigData } from "@/types";
+import { StoredSigData, ChainSigData } from "@/types";
 import { formatEther } from "ethers/lib/utils.js";
 
 const storageKey = "bridge-together-sigdata";
 
 const Home: NextPage = () => {
-  const appendNewSig = (sigData: StoredSigData) => {
+  const chainId = useChainId();
+
+  const appendNewSig = (sigData: ChainSigData) => {
     const currentSigs = getStoredSigs();
     currentSigs.push(sigData);
     storeSig(currentSigs);
-  };
-
-  const getStoredSigs = (): StoredSigData[] => {
-    const _storedSigData = localStorage.getItem(storageKey);
-    return _storedSigData ? JSON.parse(_storedSigData) : [];
   };
 
   const clearStoredSigs = () => {
     storeSig([]);
   };
 
-  const storeSig = (newSigData: StoredSigData[]) => {
+  const getStoredSigs = (): ChainSigData[] => {
+    const _storedSigData = localStorage.getItem(storageKey);
+    const _formatted = _storedSigData ? JSON.parse(_storedSigData) : {};
+    return _formatted[chainId] ?? [];
+  };
+
+  const storeSig = (newSigData: ChainSigData[]) => {
     setStoredSigs(newSigData);
-    localStorage.setItem(storageKey, JSON.stringify(newSigData));
+
+    const _storedSigData = localStorage.getItem(storageKey);
+    const _formatted = _storedSigData ? JSON.parse(_storedSigData) : {};
+
+    localStorage.setItem(
+      storageKey,
+      JSON.stringify({
+        ..._formatted,
+        [chainId]: newSigData,
+      })
+    );
   };
 
   const [tokenAmount, setTokenAmount] = useState<number>();
-  const [storedSigs, setStoredSigs] = useState<StoredSigData[]>();
+  const [storedSigs, setStoredSigs] = useState<ChainSigData[]>();
 
   useEffect(() => {
     setStoredSigs(getStoredSigs());
-  }, []);
+  }, [chainId]);
 
   return (
     <Layout>

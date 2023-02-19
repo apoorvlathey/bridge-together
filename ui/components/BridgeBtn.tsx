@@ -14,13 +14,13 @@ import { BigNumber, constants, ethers, utils } from "ethers";
 import { parseEther } from "ethers/lib/utils.js";
 import { chainIdToConfig } from "@/config";
 import BridgeTogetherABI from "@/abis/BridgeTogether.json";
-import { StoredSigData } from "@/types";
+import { ChainSigData } from "@/types";
 
 export default function BridgeBtn({
   storedSigs,
   clearStoredSigs,
 }: {
-  storedSigs: StoredSigData[] | undefined;
+  storedSigs: ChainSigData[] | undefined;
   clearStoredSigs: () => void;
 }) {
   const toast = useToast();
