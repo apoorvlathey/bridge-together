@@ -1,4 +1,4 @@
-import { Box, Button, Center } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
 import { useAccount, useSignTypedData, useChainId } from "wagmi";
 import { utils } from "ethers";
 import { chainIdToConfig } from "@/config";
@@ -7,9 +7,14 @@ import { ChainSigData } from "@/types";
 interface Props {
   tokenAmount: number | undefined;
   appendNewSig: (sigData: ChainSigData) => void;
+  isApproved: boolean;
 }
 
-export default function QueueBtn({ tokenAmount, appendNewSig }: Props) {
+export default function QueueBtn({
+  tokenAmount,
+  appendNewSig,
+  isApproved,
+}: Props) {
   const { address } = useAccount();
   const chainId = useChainId();
 
@@ -49,26 +54,24 @@ export default function QueueBtn({ tokenAmount, appendNewSig }: Props) {
     });
 
   return (
-    <Center mt="1rem">
-      <Button
-        bg="brand.blue"
-        _hover={{
-          bg: "brand.blueLight",
-        }}
-        color="white"
-        isDisabled={!address || !tokenAmount}
-        isLoading={isLoading}
-        onClick={() => {
-          signTypedData();
-          // const hashedDomain = utils._TypedDataEncoder.hashDomain(domain);
-          // const hashedValue = utils._TypedDataEncoder.from(types).hash(value);
-          // const encoded = utils._TypedDataEncoder.encode(domain, types, value);
-          // const hashed = utils._TypedDataEncoder.hash(domain, types, value);
-          // console.log({ hashedDomain, hashedValue, encoded, hashed });
-        }}
-      >
-        Queue
-      </Button>
-    </Center>
+    <Button
+      bg="brand.blue"
+      _hover={{
+        bg: "brand.blueLight",
+      }}
+      color="white"
+      isDisabled={!address || !tokenAmount || !isApproved}
+      isLoading={isLoading}
+      onClick={() => {
+        signTypedData();
+        // const hashedDomain = utils._TypedDataEncoder.hashDomain(domain);
+        // const hashedValue = utils._TypedDataEncoder.from(types).hash(value);
+        // const encoded = utils._TypedDataEncoder.encode(domain, types, value);
+        // const hashed = utils._TypedDataEncoder.hash(domain, types, value);
+        // console.log({ hashedDomain, hashedValue, encoded, hashed });
+      }}
+    >
+      Queue
+    </Button>
   );
 }

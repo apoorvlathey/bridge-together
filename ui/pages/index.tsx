@@ -14,19 +14,25 @@ import {
   Td,
   Tbody,
   Box,
+  HStack,
 } from "@chakra-ui/react";
-import { useChainId } from "wagmi";
+import { useChainId, useAccount, useContractRead } from "wagmi";
+import { BigNumber } from "ethers";
+import { formatEther, parseEther } from "ethers/lib/utils.js";
 import Layout from "@/components/Layout";
 import TokenInput from "@/components/TokenInput";
 import ProgressBar from "@/components/ProgressBar";
 import QueueBtn from "@/components/QueueBtn";
-import { StoredSigData, ChainSigData } from "@/types";
-import { formatEther } from "ethers/lib/utils.js";
+import { ChainSigData } from "@/types";
+import ERC20ABI from "@/abis/ERC20.json";
+import { chainIdToConfig } from "@/config";
+import ApproveBtn from "@/components/ApproveBtn";
 
 const storageKey = "bridge-together-sigdata";
 
 const Home: NextPage = () => {
   const chainId = useChainId();
+  const { address } = useAccount();
 
   const appendNewSig = (sigData: ChainSigData) => {
     const currentSigs = getStoredSigs();
@@ -59,12 +65,42 @@ const Home: NextPage = () => {
     );
   };
 
+  const [isApproved, setIsApproved] = useState(true);
   const [tokenAmount, setTokenAmount] = useState<number>();
   const [storedSigs, setStoredSigs] = useState<ChainSigData[]>();
+
+  const {
+    data: allowance,
+    isError,
+    isLoading,
+    refetch,
+  } = useContractRead({
+    address: chainIdToConfig[chainId].testTokenAddress,
+    abi: ERC20ABI,
+    functionName: "allowance",
+    args: [address, chainIdToConfig[chainId].bridgeTogetherAddress],
+    enabled: !!address,
+  });
 
   useEffect(() => {
     setStoredSigs(getStoredSigs());
   }, [chainId]);
+
+  useEffect(() => {
+    if (address) {
+      refetch();
+    }
+  }, [address, chainId]);
+
+  useEffect(() => {
+    if (allowance) {
+      if (tokenAmount) {
+        setIsApproved(
+          (allowance as BigNumber).gte(parseEther(tokenAmount.toString()))
+        );
+      }
+    }
+  }, [allowance, tokenAmount]);
 
   return (
     <Layout>
@@ -83,17 +119,24 @@ const Home: NextPage = () => {
             Bridge Together
           </Heading>
           <ProgressBar
-            tokenName="DAI"
+            tokenName="TEST"
             storedSigs={storedSigs}
             clearStoredSigs={clearStoredSigs}
           />
           <Container maxW="20rem">
             <TokenInput
-              tokenName="DAI"
+              tokenName="TEST"
               tokenAmount={tokenAmount}
               setTokenAmount={setTokenAmount}
             />
-            <QueueBtn tokenAmount={tokenAmount} appendNewSig={appendNewSig} />
+            <Center mt="1rem">
+              {!isApproved && <ApproveBtn refetchApproval={refetch} />}
+              <QueueBtn
+                tokenAmount={tokenAmount}
+                appendNewSig={appendNewSig}
+                isApproved={isApproved}
+              />
+            </Center>
           </Container>
           <Center width={"50rem"} mt="4rem">
             {storedSigs && (
