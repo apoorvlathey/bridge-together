@@ -13,7 +13,7 @@ export default function TokenInput({
 }: Props) {
   return (
     <FormControl>
-      <FormLabel fontSize={"lg"} color="black">
+      <FormLabel fontSize={"lg"} color="black" fontWeight={"bold"}>
         Enter {tokenName} Amount
       </FormLabel>
       <Input

@@ -51,11 +51,11 @@ export default function QueueBtn({ tokenAmount, appendNewSig }: Props) {
   return (
     <Center mt="1rem">
       <Button
-        bg="white"
+        bg="brand.blue"
         _hover={{
-          bg: "whiteAlpha.700",
+          bg: "brand.blueLight",
         }}
-        color="black"
+        color="white"
         isDisabled={!address || !tokenAmount}
         isLoading={isLoading}
         onClick={() => {

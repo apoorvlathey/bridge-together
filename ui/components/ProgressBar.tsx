@@ -1,15 +1,17 @@
-import { useState } from "react";
-import { Box, Center, Progress, Text } from "@chakra-ui/react";
+import { Box, Center, Flex, HStack, Progress, Text } from "@chakra-ui/react";
 import { StoredSigData } from "@/types";
 import { BigNumber } from "ethers";
 import { formatEther, parseEther } from "ethers/lib/utils.js";
+import BridgeBtn from "./BridgeBtn";
 
 export default function ProgressBar({
   tokenName,
   storedSigs,
+  clearStoredSigs,
 }: {
   tokenName: string;
   storedSigs: StoredSigData[] | undefined;
+  clearStoredSigs: () => void;
 }) {
   const tokenPooled =
     storedSigs && storedSigs.length > 0
@@ -27,20 +29,31 @@ export default function ProgressBar({
   const targetPoolAmount = 1000;
 
   return (
-    <Center flexDir={"column"} pt="1.5rem" w="100%">
-      <Box>
-        <Text color="gray.600" fontWeight={"bold"}>
-          {tokenName} Pooled: {tokenPooled} / {targetPoolAmount}
-        </Text>
-        <Progress
-          bg="white"
-          colorScheme={"green"}
-          value={(tokenPooled * 100) / targetPoolAmount}
-          h="2rem"
-          w="40rem"
-          rounded="full"
-        />
-      </Box>
+    <Center pt="1.5rem" w="100%">
+      <Flex direction={"row"} alignItems="flex-end">
+        <Box>
+          <Text color="gray.600" fontWeight={"bold"}>
+            {tokenName} Pooled: {tokenPooled} / {targetPoolAmount}
+          </Text>
+          <Progress
+            bg="white"
+            colorScheme={"green"}
+            value={(tokenPooled * 100) / targetPoolAmount}
+            borderBottom="2px solid"
+            borderLeft="1px solid"
+            borderColor="green.200"
+            h="2rem"
+            w="40rem"
+            rounded="full"
+          />
+        </Box>
+        {tokenPooled >= targetPoolAmount && (
+          <BridgeBtn
+            storedSigs={storedSigs}
+            clearStoredSigs={clearStoredSigs}
+          />
+        )}
+      </Flex>
     </Center>
   );
 }

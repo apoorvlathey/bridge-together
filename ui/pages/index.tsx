@@ -29,7 +29,6 @@ const Home: NextPage = () => {
     const currentSigs = getStoredSigs();
     currentSigs.push(sigData);
     storeSig(currentSigs);
-    setStoredSigs(currentSigs);
   };
 
   const getStoredSigs = (): StoredSigData[] => {
@@ -37,7 +36,12 @@ const Home: NextPage = () => {
     return _storedSigData ? JSON.parse(_storedSigData) : [];
   };
 
+  const clearStoredSigs = () => {
+    storeSig([]);
+  };
+
   const storeSig = (newSigData: StoredSigData[]) => {
+    setStoredSigs(newSigData);
     localStorage.setItem(storageKey, JSON.stringify(newSigData));
   };
 
@@ -64,7 +68,11 @@ const Home: NextPage = () => {
           >
             Bridge Together
           </Heading>
-          <ProgressBar tokenName="DAI" storedSigs={storedSigs} />
+          <ProgressBar
+            tokenName="DAI"
+            storedSigs={storedSigs}
+            clearStoredSigs={clearStoredSigs}
+          />
           <Container maxW="20rem">
             <TokenInput
               tokenName="DAI"
