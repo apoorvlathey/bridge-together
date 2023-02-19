@@ -13,7 +13,7 @@ export default function QueueBtn({ tokenAmount }: Props) {
   const domain = {
     name: "BridgeTogether",
     chainId: 5,
-    verifyingContract: "0x48d076f2ea59EB0797640E65d405496e3B376aF0",
+    verifyingContract: "0x32f8348ad01A85dbd34FCB71Beb0f7C6DE3B3466",
   } as const;
 
   const types = {
@@ -22,7 +22,7 @@ export default function QueueBtn({ tokenAmount }: Props) {
       { name: "details", type: "BridgeDetails" },
       { name: "user", type: "address" },
     ],
-  } as const;
+  };
 
   const value = {
     details: {
@@ -48,7 +48,14 @@ export default function QueueBtn({ tokenAmount }: Props) {
         color="black"
         isDisabled={!address || !tokenAmount}
         isLoading={isLoading}
-        onClick={() => signTypedData()}
+        onClick={() => {
+          signTypedData();
+          // const hashedDomain = utils._TypedDataEncoder.hashDomain(domain);
+          // const hashedValue = utils._TypedDataEncoder.from(types).hash(value);
+          // const encoded = utils._TypedDataEncoder.encode(domain, types, value);
+          // const hashed = utils._TypedDataEncoder.hash(domain, types, value);
+          // console.log({ hashedDomain, hashedValue, encoded, hashed });
+        }}
       >
         Queue
       </Button>
