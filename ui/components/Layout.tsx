@@ -4,7 +4,7 @@ import Navbar from "./Navbar";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <Box>
+    <Box pb="10rem">
       <Navbar />
       {children}
     </Box>
