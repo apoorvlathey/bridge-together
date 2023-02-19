@@ -1,19 +1,22 @@
 import { Box, Button, Center } from "@chakra-ui/react";
-import { useAccount, useSignTypedData } from "wagmi";
+import { useAccount, useSignTypedData, useChainId } from "wagmi";
 import { utils } from "ethers";
+import { chainIdToConfig } from "@/config";
+import { StoredSigData } from "@/types";
 
 interface Props {
   tokenAmount: number | undefined;
+  appendNewSig: (sigData: StoredSigData) => void;
 }
 
-export default function QueueBtn({ tokenAmount }: Props) {
+export default function QueueBtn({ tokenAmount, appendNewSig }: Props) {
   const { address } = useAccount();
+  const chainId = useChainId();
 
-  // GOERLI
   const domain = {
     name: "BridgeTogether",
-    chainId: 5,
-    verifyingContract: "0x32f8348ad01A85dbd34FCB71Beb0f7C6DE3B3466",
+    chainId,
+    verifyingContract: chainIdToConfig[chainId].bridgeTogetherAddress,
   } as const;
 
   const types = {
@@ -36,6 +39,13 @@ export default function QueueBtn({ tokenAmount }: Props) {
       domain,
       types,
       value,
+      onSuccess(data, args) {
+        appendNewSig({
+          sig: data,
+          user: args.value.user as string,
+          amount: (args.value.details as any).amount.toString(),
+        });
+      },
     });
 
   return (
@@ -59,11 +69,6 @@ export default function QueueBtn({ tokenAmount }: Props) {
       >
         Queue
       </Button>
-      <Box>
-        <Box>data: {data}</Box>
-        <Box>isError: {isError ? "true" : "false"}</Box>
-        <Box>isSuccess: {isSuccess ? "true" : "false"}</Box>
-      </Box>
     </Center>
   );
 }
