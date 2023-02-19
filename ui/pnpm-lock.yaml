@@ -20,6 +20,7 @@ specifiers:
   ethers-multicall: ^0.2.3
   framer-motion: ^6
   next: 12.1.6
+  poll: ^3.2.1
   react: 18.1.0
   react-dom: 18.1.0
   typescript: 4.6.4
@@ -40,6 +41,7 @@ dependencies:
   ethers-multicall: 0.2.3
   framer-motion: 6.5.1_ef5jwxihqo6n7gxfmzogljlgcm
   next: 12.1.6_ef5jwxihqo6n7gxfmzogljlgcm
+  poll: 3.2.1
   react: 18.1.0
   react-dom: 18.1.0_react@18.1.0
   wagmi: 0.11.5_4con2icrouy457zchvfm3xmhdm
@@ -5607,6 +5609,10 @@ packages:
   /pngjs/5.0.0:
     resolution: {integrity: sha512-40QW5YalBNfQo5yRYmiw7Yz6TKKVr3h6970B2YE+3fQpsWcrbj1PzJgxeJ19DRQjhMbKPIuMY8rFaXc8moolVw==}
     engines: {node: '>=10.13.0'}
+    dev: false
+
+  /poll/3.2.1:
+    resolution: {integrity: sha512-MbkQXbwsggoKNye0GfQs4uOci2mbCD9a4CqHkGsMMC2MvsLkrZl0s9gPSDaBjmekG6G2lqRLprOD+JMLQi/m2Q==}
     dev: false
 
   /popmotion/11.0.3:

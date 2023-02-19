@@ -19,9 +19,13 @@ import { ChainSigData } from "@/types";
 export default function BridgeBtn({
   storedSigs,
   clearStoredSigs,
+  storeTransferId,
+  setPendingTargetTx,
 }: {
   storedSigs: ChainSigData[] | undefined;
   clearStoredSigs: () => void;
+  storeTransferId: (txHash: string) => Promise<void>;
+  setPendingTargetTx: (value: boolean) => void;
 }) {
   const toast = useToast();
   const chainId = useChainId();
@@ -80,6 +84,8 @@ export default function BridgeBtn({
         isClosable: true,
         duration: 10_000,
       });
+      storeTransferId(data.hash);
+      setPendingTargetTx(true);
     },
   });
 

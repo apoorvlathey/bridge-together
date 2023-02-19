@@ -8,10 +8,14 @@ export default function ProgressBar({
   tokenName,
   storedSigs,
   clearStoredSigs,
+  storeTransferId,
+  setPendingTargetTx,
 }: {
   tokenName: string;
   storedSigs: ChainSigData[] | undefined;
   clearStoredSigs: () => void;
+  storeTransferId: (txHash: string) => Promise<void>;
+  setPendingTargetTx: (value: boolean) => void;
 }) {
   const tokenPooled =
     storedSigs && storedSigs.length > 0
@@ -51,6 +55,8 @@ export default function ProgressBar({
           <BridgeBtn
             storedSigs={storedSigs}
             clearStoredSigs={clearStoredSigs}
+            storeTransferId={storeTransferId}
+            setPendingTargetTx={setPendingTargetTx}
           />
         )}
       </Flex>

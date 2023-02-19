@@ -13,12 +13,22 @@ import {
   Th,
   Td,
   Tbody,
-  Box,
+  useToast,
+  Link,
   HStack,
+  Text,
+  Box,
+  Progress,
+  ToastId,
 } from "@chakra-ui/react";
+import { ExternalLinkIcon } from "@chakra-ui/icons";
 import { useChainId, useAccount, useContractRead } from "wagmi";
+import { goerli } from "wagmi";
+import { polygonMumbai } from "wagmi/chains";
 import { BigNumber } from "ethers";
 import { formatEther, parseEther } from "ethers/lib/utils.js";
+import axios from "axios";
+import { poll } from "poll";
 import Layout from "@/components/Layout";
 import TokenInput from "@/components/TokenInput";
 import ProgressBar from "@/components/ProgressBar";
@@ -30,9 +40,16 @@ import ApproveBtn from "@/components/ApproveBtn";
 
 const storageKey = "bridge-together-sigdata";
 
+const goerliGraphUrl =
+  "https://api.thegraph.com/subgraphs/name/connext/nxtp-amarok-runtime-v0-goerli";
+const mumbaiGraphUrl =
+  "https://api.thegraph.com/subgraphs/name/connext/nxtp-amarok-runtime-v0-mumbai";
+
 const Home: NextPage = () => {
   const chainId = useChainId();
   const { address } = useAccount();
+  const toast = useToast();
+  const toastIdRef = React.useRef<ToastId>();
 
   const appendNewSig = (sigData: ChainSigData) => {
     const currentSigs = getStoredSigs();
@@ -69,6 +86,10 @@ const Home: NextPage = () => {
   const [tokenAmount, setTokenAmount] = useState<number>();
   const [storedSigs, setStoredSigs] = useState<ChainSigData[]>();
 
+  const [transferId, setTransferId] = useState<string>();
+  const [pendingTargetTx, setPendingTargetTx] = useState(false);
+  const [targetTxHash, setTargetTxHash] = useState<string>();
+
   const {
     data: allowance,
     isError,
@@ -81,6 +102,127 @@ const Home: NextPage = () => {
     args: [address, chainIdToConfig[chainId].bridgeTogetherAddress],
     enabled: !!address,
   });
+
+  const storeTransferId = async (txHash: string) => {
+    poll(
+      async () => {
+        let tid: string | undefined;
+
+        try {
+          tid = await getTransferId(txHash);
+          setTransferId(tid);
+        } catch (e: any) {}
+      },
+      5000,
+      () => {
+        console.log(!!transferId);
+        return !!transferId; // FIXME: stop polling
+      }
+    );
+  };
+
+  const getTransferId = async (txHash: string): Promise<string> => {
+    const res = await axios({
+      method: "post",
+      url: goerliGraphUrl,
+      data: {
+        operationName: "originTransfers",
+        query: `{
+            originTransfers(
+              where: {
+                transactionHash: "${txHash}"
+              }
+            ) {
+              # Meta Data
+              chainId
+              transferId
+              nonce
+              to
+              delegate
+              receiveLocal
+              callData
+              slippage
+              originSender
+              originDomain
+              destinationDomain
+              # Asset Data
+              asset {
+                id
+                adoptedAsset
+                canonicalId
+                canonicalDomain
+              }
+              bridgedAmt
+              normalizedIn
+              status
+              transactionHash
+              timestamp
+            }
+          }`,
+        variables: {},
+      },
+    });
+
+    return res.data.data.originTransfers[0].transferId as string;
+  };
+
+  const getTargetTxHash = async (transferId: string): Promise<string> => {
+    const res = await axios({
+      method: "post",
+      url: mumbaiGraphUrl,
+      data: {
+        operationName: "destinationTransfers",
+        query: `{
+          destinationTransfers(
+            where: {
+              transferId: "${transferId}"
+            }
+          ) {
+            # Meta Data
+            chainId
+            transferId
+            nonce
+            to
+            delegate
+            receiveLocal
+            callData
+            slippage
+            originSender
+            originDomain
+            destinationDomain
+            # Asset Data
+            asset {
+              id
+            }
+            bridgedAmt
+            # Executed event Data
+            status
+            routers {
+              id
+            }
+            # Executed Transaction
+            executedCaller
+            executedTransactionHash
+            executedTimestamp
+            executedGasPrice
+            executedGasLimit
+            executedBlockNumber
+            # Reconciled Transaction
+            reconciledCaller
+            reconciledTransactionHash
+            reconciledTimestamp
+            reconciledGasPrice
+            reconciledGasLimit
+            reconciledBlockNumber
+          }
+        }`,
+        variables: {},
+      },
+    });
+
+    return res.data.data.destinationTransfers[0]
+      .executedTransactionHash as string;
+  };
 
   useEffect(() => {
     setStoredSigs(getStoredSigs());
@@ -102,6 +244,78 @@ const Home: NextPage = () => {
     }
   }, [allowance, tokenAmount]);
 
+  useEffect(() => {
+    if (transferId) {
+      poll(
+        async () => {
+          let hash: string | undefined;
+
+          try {
+            hash = await getTargetTxHash(transferId);
+            setPendingTargetTx(false);
+            setTargetTxHash(hash);
+          } catch (e: any) {}
+        },
+        5000,
+        () => {
+          console.log(!!targetTxHash);
+          return !!targetTxHash; // FIXME: stop polling
+        }
+      );
+    }
+  }, [transferId]);
+
+  useEffect(() => {
+    if (pendingTargetTx) {
+      toastIdRef.current = toast({
+        title: "Bridging Initiated",
+        description: (
+          <Box>
+            <Center fontWeight={"bold"}>
+              ⌛ Waiting for tokens to reach target chain...
+            </Center>
+            <Progress isIndeterminate />
+          </Box>
+        ),
+        status: "info",
+        position: "bottom-right",
+        isClosable: true,
+        duration: 200_000,
+      });
+    } else {
+      if (toastIdRef.current) {
+        toast.close(toastIdRef.current);
+      }
+    }
+  }, [pendingTargetTx, toastIdRef]);
+
+  useEffect(() => {
+    if (targetTxHash) {
+      toast({
+        title: "Bridged Successfully to target chain",
+        description: (() => {
+          const targetChain = chainId === goerli.id ? polygonMumbai : goerli;
+
+          return (
+            <Link
+              href={`${targetChain.blockExplorers.etherscan.url}/tx/${targetTxHash}`}
+              isExternal
+            >
+              <HStack>
+                <Text>View on {targetChain.blockExplorers.etherscan.name}</Text>
+                <ExternalLinkIcon />
+              </HStack>
+            </Link>
+          );
+        })(),
+        status: "success",
+        position: "bottom-right",
+        isClosable: true,
+        duration: 10_000,
+      });
+    }
+  }, [targetTxHash]);
+
   return (
     <Layout>
       <Head>
@@ -122,6 +336,8 @@ const Home: NextPage = () => {
             tokenName="TEST"
             storedSigs={storedSigs}
             clearStoredSigs={clearStoredSigs}
+            storeTransferId={storeTransferId}
+            setPendingTargetTx={setPendingTargetTx}
           />
           <Container maxW="20rem">
             <TokenInput
