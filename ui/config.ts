@@ -1,8 +1,9 @@
-import { chain } from "wagmi";
+import { goerli } from "wagmi";
+import { polygonMumbai } from "wagmi/chains";
 
-export const supportedChains = [chain.mainnet, chain.polygon];
+export const supportedChains = [goerli, polygonMumbai];
 
 export const chainIdToRPC = {
-  [chain.mainnet.id]: process.env.NEXT_PUBLIC_MAINNET_RPC_URL,
-  [chain.polygon.id]: process.env.NEXT_PUBLIC_POLYGON_RPC_URL,
+  [goerli.id]: process.env.NEXT_PUBLIC_GOERLI_RPC_URL,
+  [polygonMumbai.id]: process.env.NEXT_PUBLIC_MUMBAI_RPC_URL,
 };

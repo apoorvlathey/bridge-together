@@ -1,10 +1,15 @@
 import type { NextPage } from "next";
 import Head from "next/head";
-import React, { useEffect, useState } from "react";
-import { Center, Box, VStack, Heading } from "@chakra-ui/react";
-import Layout from "../components/Layout";
+import React, { useState } from "react";
+import { Center, VStack, Heading, Container } from "@chakra-ui/react";
+import Layout from "@/components/Layout";
+import TokenInput from "@/components/TokenInput";
+import ProgressBar from "@/components/ProgressBar";
+import QueueBtn from "@/components/QueueBtn";
 
 const Home: NextPage = () => {
+  const [tokenAmount, setTokenAmount] = useState<number>();
+
   return (
     <Layout>
       <Head>
@@ -20,6 +25,15 @@ const Home: NextPage = () => {
           >
             Bridge Together
           </Heading>
+          <ProgressBar tokenName="DAI" />
+          <Container maxW="20rem">
+            <TokenInput
+              tokenName="DAI"
+              tokenAmount={tokenAmount}
+              setTokenAmount={setTokenAmount}
+            />
+            <QueueBtn tokenAmount={tokenAmount} />
+          </Container>
         </VStack>
       </Center>
     </Layout>

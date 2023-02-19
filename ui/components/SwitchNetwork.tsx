@@ -58,7 +58,7 @@ function SwitchNetwork() {
           <ModalHeader>🔁 Switch Network</ModalHeader>
           <ModalCloseButton />
           <ModalBody>
-            <Stack spacing={3} my="1rem" mx="auto" maxW="9rem">
+            <Stack spacing={3} my="1rem" mx="auto" w="12rem">
               {supportedChains.map((_chain, i) => (
                 <Button
                   key={i}

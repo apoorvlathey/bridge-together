@@ -39,12 +39,12 @@ const AccountInfo = ({ handleOpenModal }: Props) => {
   const { address } = useAccount();
   const { data: ensName } = useEnsName({ address });
   const { data: etherBalance, isLoading: isBalanceLoading } = useBalance({
-    addressOrName: address,
+    address,
   });
   const { chain } = useNetwork();
   const { switchNetwork } = useSwitchNetwork();
   const { data: ensAvatar } = useEnsAvatar({
-    addressOrName: address,
+    address: address,
   });
 
   const {
@@ -127,7 +127,7 @@ const AccountInfo = ({ handleOpenModal }: Props) => {
           {/* <ModalCloseButton /> */}
           <ModalBody>
             <Text>Please switch to one of the supported chains</Text>
-            <Stack spacing={3} my="1rem" mx="auto" maxW="9rem">
+            <Stack spacing={3} my="1rem" mx="auto" maxW="12rem">
               {supportedChains.map((chain, i) => (
                 <Button
                   key={i}

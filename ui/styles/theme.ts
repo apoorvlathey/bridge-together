@@ -3,6 +3,7 @@ import { extendTheme, ThemeConfig } from "@chakra-ui/react";
 const colors = {
   brand: {
     red: "#F07167",
+    redLight: "rgba(240,113,103, 0.6)",
     green: "#A7C957",
     bg: "#FED9B7",
   },

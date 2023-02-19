@@ -31,6 +31,9 @@ function ConnectWallet() {
     <>
       <Button
         bg="brand.red"
+        _hover={{
+          bg: "brand.redLight",
+        }}
         onClick={openModal}
         isLoading={isLoading}
         loadingText="Connecting"
