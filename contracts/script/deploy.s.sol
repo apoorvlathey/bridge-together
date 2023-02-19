@@ -10,16 +10,17 @@ import {IConnext} from "@src/connext/IConnext.sol";
 
 contract Deploy is Script {
     // =========== GOERLI ===============
-    address goerli_connext = 0xb35937ce4fFB5f72E90eAD83c10D33097a4F18D2;
-    address goerli_dai = 0x75Ab5AB1Eef154C0352Fc31D2428Cef80C7F8B33;
+    address goerli_connext = 0xFCa08024A6D4bCc87275b1E4A1E22B71fAD7f649;
+    address goerli_test = 0x7ea6eA49B0b0Ae9c5db7907d139D9Cd3439862a1;
     BridgeTogether goerliBridge =
-        BridgeTogether(0x48d076f2ea59EB0797640E65d405496e3B376aF0);
+        BridgeTogether(0x32f8348ad01A85dbd34FCB71Beb0f7C6DE3B3466);
+    uint256 goerliForkId;
 
     // =========== MUMBAI ===============
-    address mumbai_connext = 0xa2F2ed226d4569C8eC09c175DDEeF4d41Bab4627;
-    address mumbai_dai = 0x001B3B4d0F3714Ca98ba10F6042DaEbF0B1B7b6F;
-    BridgeTogether mumbaiBridge =
-        BridgeTogether(0x2A6E931d83a2A45a0554C627ea3A39cb1e70fF85);
+    address mumbai_connext = 0x2334937846Ab2A3FCE747b32587e1A1A2f6EEC5a;
+    address mumbai_test = 0xeDb95D8037f769B72AAab41deeC92903A98C9E16;
+    BridgeTogether mumbaiBridge; // 0x6Fe837da6463ec4663484eeBf14977F875d8FFa2
+    uint256 mumbaiForkId;
 
     function run() external {
         _goerliDeploy();
@@ -28,11 +29,11 @@ contract Deploy is Script {
     }
 
     function _goerliDeploy() internal {
-        vm.createSelectFork(vm.rpcUrl("goerli"));
+        goerliForkId = vm.createSelectFork(vm.rpcUrl("goerli"));
         vm.startBroadcast();
 
         goerliBridge = new BridgeTogether(
-            IERC20(goerli_dai),
+            IERC20(goerli_test),
             IConnext(goerli_connext)
         );
 
@@ -40,11 +41,11 @@ contract Deploy is Script {
     }
 
     function _mumbaiDeploy() internal {
-        vm.createSelectFork(vm.rpcUrl("mumbai"));
+        mumbaiForkId = vm.createSelectFork(vm.rpcUrl("mumbai"));
         vm.startBroadcast();
 
         mumbaiBridge = new BridgeTogether(
-            IERC20(mumbai_dai),
+            IERC20(mumbai_test),
             IConnext(goerli_connext)
         );
 
@@ -52,12 +53,12 @@ contract Deploy is Script {
     }
 
     function _setTargetAddresses() internal {
-        vm.createSelectFork(vm.rpcUrl("goerli"));
+        vm.selectFork(goerliForkId);
         vm.startBroadcast();
         goerliBridge.setTargetBridgeTogether(mumbaiBridge);
         vm.stopBroadcast();
 
-        vm.createSelectFork(vm.rpcUrl("mumbai"));
+        vm.selectFork(mumbaiForkId);
         vm.startBroadcast();
         mumbaiBridge.setTargetBridgeTogether(goerliBridge);
         vm.stopBroadcast();

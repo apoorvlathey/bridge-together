@@ -3,14 +3,14 @@ pragma solidity 0.8.15;
 
 import {IERC20} from "@openzeppelin/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/token/ERC20/utils/SafeERC20.sol";
-import {ECDSA} from "@openzeppelin/utils/cryptography/ECDSA.sol";
 
+import {SignatureVerification} from "@src/lib/SignatureVerification.sol";
 import {IConnext} from "./connext/IConnext.sol";
 import {IXReceiver} from "./connext/IXReceiver.sol";
 
 contract BridgeTogether is IXReceiver {
     using SafeERC20 for IERC20;
-    using ECDSA for bytes32;
+    using SignatureVerification for bytes;
 
     IERC20 public token;
     uint256 public keeperFeesBPS = 50; // 0.5%
@@ -51,7 +51,6 @@ contract BridgeTogether is IXReceiver {
     }
 
     error NotOwner();
-    error InvalidSignature();
 
     constructor(IERC20 token_, IConnext connext_) {
         token = token_;
@@ -150,11 +149,10 @@ contract BridgeTogether is IXReceiver {
         view
         returns (address user, uint256 amount)
     {
-        if (
-            hashTypedData(hash(signData.bridge))
-                .toEthSignedMessageHash()
-                .recover(signData.signature) != signData.bridge.user
-        ) revert InvalidSignature();
+        signData.signature.verify(
+            hashTypedData(hash(signData.bridge)),
+            signData.bridge.user
+        );
 
         user = signData.bridge.user;
         amount = signData.bridge.details.amount;
