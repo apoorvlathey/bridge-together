@@ -69,12 +69,12 @@ const AccountInfo = ({ handleOpenModal }: Props) => {
       <Box
         display="flex"
         alignItems="center"
-        background="gray.700"
+        background="whiteAlpha.700"
         borderRadius="xl"
         py="0"
       >
         <Box px="3">
-          <Text color="white" fontSize="md">
+          <Text color="black" fontSize="md">
             {isBalanceLoading && <Skeleton rounded={"lg"}>0.00 ETH</Skeleton>}
             {etherBalance && (
               <>
@@ -86,7 +86,7 @@ const AccountInfo = ({ handleOpenModal }: Props) => {
         </Box>
         <Button
           onClick={handleOpenModal}
-          bg="gray.800"
+          bg="blackAlpha.700"
           border="1px solid transparent"
           _hover={{
             border: "1px",

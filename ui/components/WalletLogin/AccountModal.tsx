@@ -37,20 +37,20 @@ const AccountModal = ({ isOpen, onClose }: Props) => {
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
       <ModalOverlay />
       <ModalContent
-        background="gray.900"
+        bg="gray.200"
         border="1px"
         borderStyle="solid"
         borderColor="gray.700"
         borderRadius="3xl"
       >
-        <ModalHeader color="white" px={4} fontSize="lg" fontWeight="medium">
+        <ModalHeader color="black" px={4} fontSize="lg" fontWeight="medium">
           Account
         </ModalHeader>
         <ModalCloseButton
-          color="white"
+          color="black"
           fontSize="sm"
           _hover={{
-            color: "whiteAlpha.700",
+            color: "blackAlpha.600",
           }}
         />
         <ModalBody pt={0} px={4}>
@@ -65,7 +65,7 @@ const AccountModal = ({ isOpen, onClose }: Props) => {
             mb={3}
           >
             <Flex justifyContent="space-between" alignItems="center" mb={3}>
-              <Text color="gray.400" fontSize="sm">
+              <Text color="gray.700" fontSize="sm">
                 Connected with {connector?.name}
               </Text>
               <Button
@@ -91,7 +91,7 @@ const AccountModal = ({ isOpen, onClose }: Props) => {
             <Flex alignItems="center" mt={2} mb={4} lineHeight={1}>
               <Identicon />
               <Text
-                color="white"
+                color="black"
                 fontSize="xl"
                 fontWeight="semibold"
                 ml="2"
@@ -103,12 +103,12 @@ const AccountModal = ({ isOpen, onClose }: Props) => {
             <Flex alignContent="center" m={3}>
               <Button
                 variant="link"
-                color="gray.400"
+                color="gray.600"
                 fontWeight="normal"
                 fontSize="sm"
                 _hover={{
                   textDecoration: "none",
-                  color: "whiteAlpha.800",
+                  color: "blackAlpha.500",
                 }}
                 onClick={() => {
                   navigator.clipboard.writeText(address!);
@@ -123,10 +123,10 @@ const AccountModal = ({ isOpen, onClose }: Props) => {
                 alignItems="center"
                 href={`${chain?.blockExplorers?.default.url}/address/${address}`}
                 isExternal
-                color="gray.400"
+                color="gray.600"
                 ml={6}
                 _hover={{
-                  color: "whiteAlpha.800",
+                  color: "blackAlpha.500",
                   textDecoration: "underline",
                 }}
               >
@@ -139,7 +139,7 @@ const AccountModal = ({ isOpen, onClose }: Props) => {
 
         <ModalFooter
           justifyContent="end"
-          background="gray.700"
+          bg="gray.200"
           borderBottomLeftRadius="3xl"
           borderBottomRightRadius="3xl"
           p={4}

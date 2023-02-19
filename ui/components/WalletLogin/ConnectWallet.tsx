@@ -48,14 +48,20 @@ function ConnectWallet() {
       >
         <ModalOverlay />
         <ModalContent>
-          <ModalHeader>Select a Wallet</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody>
+          <ModalHeader bg="white" color="black">
+            Select a Wallet
+          </ModalHeader>
+          <ModalCloseButton color="black" />
+          <ModalBody bg="white">
             <Flex flexDir={"column"} mb="1rem">
               {connectors.map((connector, key) => (
                 <Button
                   key={key}
                   mb="0.5rem"
+                  bg="blackAlpha.600"
+                  _hover={{
+                    bg: "blackAlpha.700",
+                  }}
                   isDisabled={!connector.ready}
                   onClick={() => handleConnectWallet(connector)}
                   isLoading={isLoading && connector.id === pendingConnector?.id}

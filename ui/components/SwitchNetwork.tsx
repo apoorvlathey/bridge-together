@@ -38,7 +38,11 @@ function SwitchNetwork() {
         <Button
           mr="1rem"
           py="1.3rem"
-          background="gray.700"
+          bg="whiteAlpha.700"
+          _hover={{
+            bg: "white",
+          }}
+          color="black"
           borderRadius="lg"
           onClick={() => openModal()}
         >
@@ -54,20 +58,20 @@ function SwitchNetwork() {
       )}
       <Modal isOpen={isModalOpen} onClose={closeModal} isCentered>
         <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>🔁 Switch Network</ModalHeader>
-          <ModalCloseButton />
+        <ModalContent bg="gray.300">
+          <ModalHeader color="black">🔁 Switch Network</ModalHeader>
+          <ModalCloseButton color={"black"} />
           <ModalBody>
             <Stack spacing={3} my="1rem" mx="auto" w="12rem">
               {supportedChains.map((_chain, i) => (
                 <Button
                   key={i}
-                  bgColor="white"
+                  bg="white"
                   color="black"
                   _hover={
                     chain && _chain.id !== chain.id
                       ? {
-                          bgColor: "gray.400",
+                          bgColor: "blackAlpha.300",
                         }
                       : {}
                   }
